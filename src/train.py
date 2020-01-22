@@ -9,7 +9,7 @@ __email__ = "felixtempel95@hotmail.de"
 __status__ = "Production"
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, plot_roc_curve
 
 
 def train_svm(X, y):
@@ -26,6 +26,8 @@ def train_svm(X, y):
 
     y_pred_train = classifier.predict(X_train)
     cm_train = confusion_matrix(y_pred_train, y_train)
+
+    plot_roc_curve(classifier, X_test, y_test)
 
     print()
     print('Accuracy for training set svm = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
@@ -80,7 +82,7 @@ def train_decision_tree(X, y):
 
     from sklearn.tree import DecisionTreeClassifier
 
-    classifier = DecisionTreeClassifier(max_depth=5)
+    classifier = DecisionTreeClassifier(max_depth=10)
     classifier.fit(X_train, y_train)
 
     y_pred = classifier.predict(X_test)
@@ -101,7 +103,7 @@ def train_random_forest(X, y):
 
     from sklearn.ensemble import RandomForestClassifier
 
-    classifier = RandomForestClassifier(n_estimators=10)
+    classifier = RandomForestClassifier(n_estimators=5)
     classifier.fit(X_train, y_train)
 
     # Predicting the Test set results
@@ -189,6 +191,8 @@ def train_knn(X, y):
             y_pred_train[i] = 0
 
     cm_train = confusion_matrix(y_pred_train, y_train)
+
+
     print()
     print('Accuracy for training KNN = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
     print('Accuracy for test KNN = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))

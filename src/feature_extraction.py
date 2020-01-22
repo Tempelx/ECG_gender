@@ -9,7 +9,7 @@ __email__ = "felixtempel95@hotmail.de"
 __status__ = "Production"
 
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 def st_degree_fun(signal_conv, idx_df):
     """""
@@ -197,7 +197,7 @@ def t_des_fun(signal_conv, idx_df):
     return t_des_angle, t_des_mean, t_des_std
 
 
-def t_ampl_fun(signal, t_peak_idx_df, column):
+def t_ampl_fun(signal_conv, idx_df):
     """""
     Calculate Amplitude of T-Wave wrt. baseline
 
@@ -214,13 +214,13 @@ def t_ampl_fun(signal, t_peak_idx_df, column):
 
     # get Amplitude of T-Wave wrt. baseline
     counter = 0
-    t_ampl = np.zeros(t_peak_idx_df[column].size)
+    t_ampl = np.zeros(idx_df["T-Peak"].size)
 
-    for i in t_peak_idx_df[column]:
-        t_ampl[counter] = signal[int(i)]
+    for i in idx_df["T-Peak"]:
+        t_ampl[counter] = signal_conv[int(i)]
         counter += 1
 
-    t_ampl_mean = np.mean(t_ampl)
-    t_ampl_std = np.std(t_ampl)
+    t_ampl_mean = np.nanmean(t_ampl)
+    t_ampl_std = np.nanstd(t_ampl)
 
     return t_ampl, t_ampl_mean, t_ampl_std

@@ -125,13 +125,13 @@ def feature_calc():
     bar.finish()
 
     # Feature DataFrame
-    features = pd.DataFrame(feature_data, columns=df_col)
-    features.to_csv('/Users/felixtempel11/PycharmProjects/ECG_sex_estimation/data/features.csv')
+    feat = pd.DataFrame(feature_data, columns=df_col)
+    feat.to_csv('/Users/felixtempel11/PycharmProjects/ECG_sex_estimation/data/features.csv')
 
-    return features
+    return feat
 
 
-def train_classifier(feature_path):
+def train_features(feature_path):
 
     print('Start Training...')
     features = pd.read_csv(feature_path, index_col=0)
@@ -188,31 +188,37 @@ def train_classifier(feature_path):
     X_std = features_scaled_std[features_scaled_minmax.columns[3:9]].values
     y = features_scaled_minmax.iloc[:, 1].values
 
-    trainer.train_decision_tree(X_minmax, y)
-    trainer.train_svm(X_minmax, y)
-    trainer.train_xgboost(X_minmax, y)
-    trainer.train_svm(X_minmax, y)
-    trainer.train_random_forest(X_minmax, y)
-    trainer.train_log_reg(X_minmax, y)
-    trainer.train_adaboost(X_minmax, y)
-    trainer.train_knn(X_minmax, y)
-    trainer.train_mlp(X_minmax, y)
-    trainer.train_qda(X_minmax, y)
+    i = 0
+    print('Train full dataset')
+    trainer.train_classifiers(X_minmax, y, 'Full Dataset', i)
+    print('Finished full dataset')
 
-    trainer.train_decision_tree(X_std, y)
-    trainer.train_svm(X_std, y)
-    trainer.train_xgboost(X_std, y)
-    trainer.train_svm(X_std, y)
-    trainer.train_random_forest(X_std, y)
-    trainer.train_log_reg(X_std, y)
-    trainer.train_adaboost(X_std, y)
-    trainer.train_knn(X_std, y)
-    trainer.train_mlp(X_std, y)
-    trainer.train_qda(X_std, y)
+    feat_low_age = features_scaled_minmax.loc[features_scaled_minmax['Age'] <= 30]
+    feat_low_scaled = feat_low_age[feat_low_age.columns[3:9]].values
+    y = feat_low_age.iloc[:, 1].values
+
+    i = 1
+    print('Train low age ')
+    trainer.train_classifiers(feat_low_scaled, y, ' Age <= 30 ', i)
+    print('Finished low age')
+
+    feat_high_age = features_scaled_minmax.loc[features_scaled_minmax['Age'] >= 30]
+    feat__high_scaled = feat_high_age[feat_high_age.columns[3:9]].values
+    y = feat_high_age.iloc[:, 1].values
+
+    i = 2
+    print('Train high age')
+    trainer.train_classifiers(feat__high_scaled, y, 'Age >= 30', i)
+    print('Finished high age')
+
+    import matplotlib.pyplot as plt
+    plt.show()
+    input()
 
 
 if __name__ == '__main__':
 
-    features = feature_calc()
-    train_classifier(features)
+    #features = feature_calc()
+    feature_path = '/Users/felixtempel11/PycharmProjects/ECG_sex_estimation/data/features.csv'
+    train_features(feature_path)
 

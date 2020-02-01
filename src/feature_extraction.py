@@ -65,7 +65,6 @@ def jt_max_fun(idx_df, signal_f_s):
     distance_ms, distance_mean, distance_std:     np.array distances with std and mean
     """""
 
-    # TODO: Crosscheck with real data?!
     distance_ms = np.zeros(idx_df["J-Point"].size)
     counter = 0
     for i, ii in zip(idx_df["J-Point"], idx_df["T-Peak"]):
@@ -108,11 +107,6 @@ def t_asc_fun(signal_conv, idx_df):
 
         steepest_idx = np.argmax(np.gradient(area))
         steepest_val = area[steepest_idx]
-        # steepest_idx = np.argmax(area[:-1] - area[1:])
-        # steepest_val = np.max(area[:-1] - area[1:])
-
-        # TODO: crosscheck for measurement local min --> diff?
-        # TODO: baseline really at 0??????
 
         # angle over two vectors
         try:
@@ -168,8 +162,6 @@ def t_des_fun(signal_conv, idx_df):
         steepest_val = area[steepest_idx]
 
         # crossing with baseline
-        # y = mx+b
-
         # angle over two vectors
         try:
             v1 = [steepest_idx, steepest_val]
@@ -187,7 +179,7 @@ def t_des_fun(signal_conv, idx_df):
             t_des_angle[counter] = np.rad2deg(cosine_angle)
         except IndexError:
             t_des_angle[counter] = np.nan
-        #angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+
         counter += 1
 
     # mean + std

@@ -9,244 +9,109 @@ __email__ = "felixtempel95@hotmail.de"
 __status__ = "Production"
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, plot_roc_curve
+from sklearn.metrics import confusion_matrix, roc_curve, roc_auc_score
+import numpy as np
+import matplotlib.pyplot as plt
 
 
-def train_svm(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
+def train_classifiers(X, y, comment, i):
     from sklearn.svm import SVC
-    classifier = SVC(kernel='rbf')
-    classifier.fit(X_train, y_train)
-
-    y_pred = classifier.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = classifier.predict(X_train)
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-    plot_roc_curve(classifier, X_test, y_test)
-
-    print()
-    print('Accuracy for training set svm = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test set svm = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_naive_bayes(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.naive_bayes import GaussianNB
-
-    classifier = GaussianNB()
-    classifier.fit(X_train, y_train)
-
-    y_pred = classifier.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = classifier.predict(X_train)
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-    print()
-    print('Accuracy for training set Naive Bayes = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test set Naive Bayes = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_log_reg(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.linear_model import LogisticRegression
-
-    classifier = LogisticRegression()
-    classifier.fit(X_train, y_train)
-
-    y_pred = classifier.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = classifier.predict(X_train)
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-    print()
-    print('Accuracy for training set Logistic Regression = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test set Logistic Regression = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_decision_tree(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.tree import DecisionTreeClassifier
-
-    classifier = DecisionTreeClassifier(max_depth=10)
-    classifier.fit(X_train, y_train)
-
-    y_pred = classifier.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = classifier.predict(X_train)
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-    print()
-    print('Accuracy for training set Decision Tree = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test set Decision Tree = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_random_forest(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.ensemble import RandomForestClassifier
-
-    classifier = RandomForestClassifier(n_estimators=5)
-    classifier.fit(X_train, y_train)
-
-    # Predicting the Test set results
-    y_pred = classifier.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = classifier.predict(X_train)
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-    print()
-    print('Accuracy for training set Random Forest = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test set Random Forest = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_mlp(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.neural_network import MLPClassifier
-
-    mlp = MLPClassifier()
-    mlp.fit(X_train, y_train)
-    y_pred = mlp.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = mlp.predict(X_train)
-
-    for i in range(0, len(y_pred_train)):
-        if y_pred_train[i] >= 0.5:
-            y_pred_train[i] = 1
-        else:
-            y_pred_train[i] = 0
-
-    cm_train = confusion_matrix(y_pred_train, y_train)
-    print()
-    print('Accuracy for training MLP = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test MLP = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_adaboost(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.ensemble import AdaBoostClassifier
-
-    ada = AdaBoostClassifier()
-    ada.fit(X_train, y_train)
-    y_pred = ada.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = ada.predict(X_train)
-
-    for i in range(0, len(y_pred_train)):
-        if y_pred_train[i] >= 0.5:
-            y_pred_train[i] = 1
-        else:
-            y_pred_train[i] = 0
-
-    cm_train = confusion_matrix(y_pred_train, y_train)
-    print()
-    print('Accuracy for training AdaBoost = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test AdaBoost = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_knn(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    from sklearn.neighbors import KNeighborsClassifier
-    knn = KNeighborsClassifier()
-    knn.fit(X_train, y_train)
-    y_pred = knn.predict(X_test)
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = knn.predict(X_train)
-
-    for i in range(0, len(y_pred_train)):
-        if y_pred_train[i] >= 0.5:  # setting threshold to .5
-            y_pred_train[i] = 1
-        else:
-            y_pred_train[i] = 0
-
-    cm_train = confusion_matrix(y_pred_train, y_train)
-
-
-    print()
-    print('Accuracy for training KNN = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test KNN = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_xgboost(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
     from xgboost import XGBClassifier
-
-    xg = XGBClassifier()
-    xg.fit(X_train, y_train)
-    y_pred = xg.predict(X_test)
-
-    from sklearn.metrics import confusion_matrix
-
-    cm_test = confusion_matrix(y_pred, y_test)
-
-    y_pred_train = xg.predict(X_train)
-
-    for i in range(0, len(y_pred_train)):
-        if y_pred_train[i] >= 0.5:
-            y_pred_train[i] = 1
-        else:
-            y_pred_train[i] = 0
-
-    cm_train = confusion_matrix(y_pred_train, y_train)
-    print()
-    print('Accuracy for training XGBoost = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test XGBoost = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
-
-
-def train_qda(X, y):
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.neural_network import MLPClassifier
     from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.ensemble import AdaBoostClassifier
+    from sklearn.metrics import classification_report
+    from sklearn.model_selection import GridSearchCV
 
-    qda = QuadraticDiscriminantAnalysis()
-    qda.fit(X_train, y_train)
-    y_pred = qda.predict(X_test)
+    classifiers = [SVC(kernel='rbf', probability=True),
+                   SVC(kernel="linear", probability=True),
+                   GaussianNB(),
+                   LogisticRegression(),
+                   DecisionTreeClassifier(),
+                   RandomForestClassifier(),
+                   MLPClassifier(),
+                   AdaBoostClassifier(),
+                   KNeighborsClassifier(),
+                   XGBClassifier(),
+                   QuadraticDiscriminantAnalysis()]
 
-    cm_test = confusion_matrix(y_pred, y_test)
+    names = ['RBF SVM', 'Linear SVM', 'Naive Bayes', 'Logistic Regression', 'Decision Tree', 'Random Forest', 'MLP',
+             'AdaBoost', 'KNN', 'XGBoost', 'QDA']
 
-    y_pred_train = qda.predict(X_train)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
 
-    for i in range(0, len(y_pred_train)):
-        if y_pred_train[i] >= 0.5:
-            y_pred_train[i] = 1
-        else:
-            y_pred_train[i] = 0
+    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+                         'C': [1, 10, 100, 1000, 10000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
 
-    cm_train = confusion_matrix(y_pred_train, y_train)
-    print()
-    print('Accuracy for training QDA = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_train)))
-    print('Accuracy for test QDA = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_test)))
+
+    scores = ['precision', 'recall']
+
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
+
+        clf = GridSearchCV(
+            SVC(), tuned_parameters, scoring='%s_macro' % score
+        )
+        clf.fit(X_train, y_train)
+
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
+
+    plt.ioff()
+    plt.figure(i)
+    for name, clf in zip(names, classifiers):
+
+        clf.fit(X_train, y_train)
+
+        y_pred_test = clf.predict(X_test)
+        cm_test = confusion_matrix(y_pred_test, y_test)
+
+        y_pred_train = clf.predict(X_train)
+        cm_train = confusion_matrix(y_pred_train, y_train)
+
+        y_pred_proba_test = clf.predict_proba(X_test)
+
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba_test[:, 1])
+        auc = roc_auc_score(y_test, y_pred_proba_test[:, 1])
+        plt.plot(fpr, tpr, label=name+", auc=" + str(round(auc, 3)))
+        plt.legend(loc=4)
+
+        print('Accuracy for ', name)
+        print('Training set = {}'.format((cm_train[0][0] + cm_train[1][1]) / len(y_pred_train)))
+        print('Test set = {}'.format((cm_test[0][0] + cm_test[1][1]) / len(y_pred_test)))
+
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(comment)
+    plt.ioff()
+
+

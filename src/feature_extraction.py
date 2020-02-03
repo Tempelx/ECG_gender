@@ -9,11 +9,165 @@ __email__ = "felixtempel95@hotmail.de"
 __status__ = "Production"
 
 import numpy as np
+import pandas as pd
+import glob
+import scipy
+import wfdb
+from biosppy.signals import ecg
+from astropy.convolution import convolve, Box1DKernel
+from src import preprocessing as pp
+from wfdb import processing
+
+
+def feature_calc_nsr(path):
+
+    import matplotlib.pyplot as plt
+    ecg_files_nsr = './data/RECORDS.csv'
+    ref_data = pd.read_csv(ecg_files_nsr)
+
+    for i in ref_data:
+
+        # build path
+        dummypath = path + i
+
+        sig_1, fields = wfdb.rdsamp(dummypath, channels=[0])
+        qrs_inds_1 = processing.xqrs_detect(sig=sig_1[0:1500, 0], fs=fields['fs'])
+
+        sig_2, fields = wfdb.rdsamp(dummypath, channels=[1])
+        qrs_inds_2 = processing.xqrs_detect(sig=sig_2[0:1500, 0], fs=fields['fs'])
+
+        plt.figure()
+        plt.subplot(211)
+        plt.plot(sig_1[0:1500])
+        plt.subplot(212)
+        plt.plot(sig_2[0:1500])
+
+
+
+
+    return 0
+
+
+def feature_calc(path):
+    """""
+    Main loop function for feature calculation
+
+    Parameters:
+    ----------
+    path      String           path to chinese database
+
+    Returns:
+    ---------
+    feat:      pd.DataFrame    Calculated Features 
+    """""
+    print('Start Feature extraction...')
+
+    # Chinese database
+    ecg_files_chinese = sorted(glob.glob(path+'*.mat'))
+    ecg_files_chinese_ref = './data/REFERENCE.csv'
+
+    ref_data = pd.read_csv(ecg_files_chinese_ref)
+
+    # Feature Dataframe
+    df_col = ["Meas_no", "Sex", "Age", "st_angle_mean", "st_angle_std", "JT_mean", "JT_std", "T_asc_mean",
+              "T_asc_std", "T_desc_mean", "T_desc_std", "T_max_mean", "T_max_std"]
+
+    feature_data = np.zeros((ref_data["First_label"].eq(1).sum(), df_col.__len__()))
+    feature_count = 0
+
+    for i in range(0, len(ecg_files_chinese)):
+
+        signal_number = ecg_files_chinese[i][-8:-4]
+
+        # only load normal rhythms --> first_label == 1
+        if ref_data.loc[[i], ['First_label']].values[0][0] == 1:
+
+            signal_raw = scipy.io.loadmat(ecg_files_chinese[i])
+
+            # extract data from mat-file
+            signal_sex = signal_raw['ECG']['sex'][0][0][0][0]
+            if signal_sex == 'F':
+                signal_sex = 1
+            elif signal_sex == 'M':
+                signal_sex = 0
+
+            signal_age = signal_raw['ECG']['age'][0][0][0][0]
+            signal_data = signal_raw['ECG']['data'][0][0]
+            signal_f_s = 500.0  # Hz
+
+            # search for highest T-Wave in Lead 1,2 and V3-V6
+            # first 5sec for computation
+            lead_t_highest = pp.lead_search_fun(signal_data)
+            lead_j = 7
+
+            # Leads [1, 2, 3, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6]
+            # get indices from chosen lead
+            ecg_object = ecg.ecg(signal=signal_data[lead_j, :], sampling_rate=signal_f_s, show=False)
+
+            # Custom  filters
+            # Baseline remove
+            ecg_blr = pp.remove_baseline_fun(signal=signal_data[lead_j, :], signal_f_s=signal_f_s)
+
+            # Box Filter
+            # 7.5 seems to be the best...
+            ecg_conv = convolve(ecg_blr, kernel=Box1DKernel(7.5))
+
+            idx_df = pp.idx_finder(ecg_object, ecg_blr, signal_number)
+
+            # T wave detection
+            ecg_object_t = ecg.ecg(signal=signal_data[lead_t_highest, :], sampling_rate=signal_f_s, show=False)
+            ecg_blr_t = pp.remove_baseline_fun(signal=signal_data[lead_t_highest, :], signal_f_s=signal_f_s)
+            ecg_conv_t = convolve(ecg_blr_t, kernel=Box1DKernel(7.5))
+
+            # check if both ecg_objects have the same number of R-Peaks
+            if ecg_object_t['rpeaks'].size < ecg_object['rpeaks'].size:
+                # drop last R-Peak in ecg
+                if abs(ecg_object_t['rpeaks'][0] - ecg_object['rpeaks'][0]) > 25:
+                    # earlier R-Peak at beginning
+                    r_peaks = ecg_object_t['rpeaks'][1:-1]
+                else:
+                    r_peaks = ecg_object['rpeaks'][:-1]
+                    idx_df = idx_df.head(-1)
+            elif ecg_object_t['rpeaks'].size > ecg_object['rpeaks'].size:
+                # drop last R-Peak in ecg_t
+                if abs(ecg_object_t['rpeaks'][0] - ecg_object['rpeaks'][0]) > 25:
+                    # earlier R-Peak at beginning
+                    r_peaks = ecg_object_t['rpeaks'][1:-1]
+                    idx_df = idx_df.head(-1)
+                else:
+                    r_peaks = ecg_object_t['rpeaks'][:-1]
+            else:
+                r_peaks = ecg_object_t['rpeaks']
+
+            idx_df = pp.idx_finder_t(r_peaks, ecg_blr_t, idx_df)
+
+            # check plausibility of DataFrame
+            if any(idx_df['T-Peak'] - idx_df['J-Point'] <= 0):
+                idx_df = idx_df.drop(idx_df.loc[idx_df['T-Peak'] - idx_df['J-Point'] <= 0].index[0])
+
+            # Calculate features
+            st_angle = st_degree_fun(ecg_conv, idx_df)
+            jt_max_ms = jt_max_fun(idx_df, signal_f_s)
+            t_asc_degree = t_asc_fun(ecg_conv_t, idx_df)
+            t_des_degree = t_des_fun(ecg_conv_t, idx_df)
+            t_max = t_ampl_fun(ecg_conv_t, idx_df)
+
+            df_data = [signal_number, signal_sex, signal_age, st_angle[1], st_angle[2], jt_max_ms[1], jt_max_ms[2],
+                       t_asc_degree[1], t_asc_degree[2], t_des_degree[1], t_des_degree[2], t_max[1], t_max[2]]
+
+            feature_data[feature_count] = df_data
+            feature_count += 1
+
+    # Feature DataFrame
+    feat = pd.DataFrame(feature_data, columns=df_col)
+    feat.to_csv('./data/features.csv')
+
+    return feat
 
 
 def st_degree_fun(signal_conv, idx_df):
     """""
-    Calculate ST angle.
+    Calculate ST angle via gradient angle.
 
     Parameters:
     ----------
@@ -24,10 +178,11 @@ def st_degree_fun(signal_conv, idx_df):
     ---------
     st_angle, st_mean, st_std:     np.array ST angle with std and mean
     """""
+
     st_angle = np.zeros((idx_df["J-Point"].size, 1))
     counter = 0
     for i in idx_df["J-Point"]:
-        # J-Point + 60 msec == 300 samples --> far too wide!!!
+        # J-Point + 50 samples
         v1 = [i, signal_conv[i]]
         v2 = [i + 50, signal_conv[i + 50]]
 
@@ -80,7 +235,7 @@ def jt_max_fun(idx_df, signal_f_s):
 
 def t_asc_fun(signal_conv, idx_df):
     """""
-    Calculate steepest point between J-Point and T-Peak,
+    Calculate steepest ascending point between J-Point and T-Peak,
     then calculate the angle with respect to baseline.
 
     Parameters:
@@ -125,7 +280,6 @@ def t_asc_fun(signal_conv, idx_df):
         except IndexError:
             t_asc_angle[counter] = np.nan
 
-
         counter += 1
 
     # mean + std
@@ -137,7 +291,7 @@ def t_asc_fun(signal_conv, idx_df):
 
 def t_des_fun(signal_conv, idx_df):
     """""
-    Calculate steepest point after T-Peak,
+    Calculate steepest descending point after T-Peak,
     then calculate the angle with respect to baseline.
 
     Parameters:
@@ -204,10 +358,8 @@ def t_ampl_fun(signal_conv, idx_df):
     t_ampl, t_ampl_mean, t_ampl_std:    np.array    T amplitude with std and mean
     """""
 
-    # get Amplitude of T-Wave wrt. baseline
     counter = 0
     t_ampl = np.zeros(idx_df["T-Peak"].size)
-
     for i in idx_df["T-Peak"]:
         t_ampl[counter] = signal_conv[int(i)]
         counter += 1

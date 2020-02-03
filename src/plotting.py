@@ -10,7 +10,6 @@ __status__ = "Production"
 
 
 import matplotlib.pyplot as plt
-from sklearn.metrics import plot_roc_curve
 
 
 def plot_signals(ecgblr=None,  convolved_data_7_5=None,

@@ -11,9 +11,23 @@ __status__ = "Production"
 from scipy.signal import medfilt
 import numpy as np
 import scipy
+import pandas as pd
+from biosppy.signals import ecg
 
 
 def idx_finder(ecg_object, filtered_signal, signal_number):
+    """""
+    Calculate Indices of ECG Signal
+
+    Parameters:
+    ----------
+    ecg_object:      Tuple           ECG signal 
+    filtered_signal: np.array        ECG signal filtered
+
+    Returns:
+    ---------
+    idx_df:          pd.DataFrame    Indices DataFrame
+    """""
 
     idx_args = np.zeros((int(ecg_object['rpeaks'].size - 1), 3))
     idx_count = 0
@@ -28,7 +42,7 @@ def idx_finder(ecg_object, filtered_signal, signal_number):
             idx_s_peaks, _ = scipy.signal.find_peaks(-area_s)
             idx_s = idx_s_peaks[0]
         except ValueError:
-            # try other lead
+            # try other Peak skip this one
             idx_s = None
 
         area_j = filtered_signal[i + idx_s: i + idx_s + area_j_search]
@@ -36,6 +50,7 @@ def idx_finder(ecg_object, filtered_signal, signal_number):
         slope_diff = np.diff(area_j)
         area_j_slope = np.where(slope_diff < 0)
 
+        # find J-Point
         time_var = 13
         try:
             idx_diff_tp_time = area_j_slope[0][np.min(np.where(area_j_slope[0] >= time_var))]
@@ -52,9 +67,21 @@ def idx_finder(ecg_object, filtered_signal, signal_number):
 
 
 def idx_finder_t(r_peaks, filtered_signal, idx_df):
+    """""
+    Calculate Index of T-Peak
 
+    Parameters:
+    ----------
+    signal_data:     np.array        ECG signal 
+    filtered_signal: np.array        ECG signal filtered
+    idx_df:          pd.DataFrame    Indices DataFrame
+
+    Returns:
+    ---------
+    idx_df:          pd.DataFrame    Indices DataFrame corrected
+    """""
     # 30 ms search area for T
-    # 0.20 to 0.40ms for QT
+    # 0.20 to 0.40ms Literature Time for QT
     search_area = 70
     idx_count = 0
     idx_arg = np.zeros((int(r_peaks.size - 1), 1))
@@ -96,14 +123,12 @@ def lead_search_fun(signal_data):
     t_value = np.zeros(6)
     counter = 0
     leads = [0, 1, 8, 9, 10, 11]
-    # colour = ['r*', 'g*', 'b*', 'y*', 'k*', 'c*']
-    # plt.figure(1)
     for i in leads:
         # next high point after S-Peak
         try:
             ecg_lead = ecg.ecg(signal_data[i, 0:1500], sampling_rate=500, show=False)
             search_area_blr = remove_baseline_fun(signal_data[i, 0:1500], 500)
-            s_index = np.argmin(search_area_blr[ecg_lead["rpeaks"][0]: ecg_lead["rpeaks"][0] + 50]) + ecg_lead["rpeaks"][0]
+            s_index = np.argmin(search_area_blr[ecg_lead["rpeaks"][0]:ecg_lead["rpeaks"][0] + 50])+ecg_lead["rpeaks"][0]
             t_index = np.argmax(search_area_blr[s_index: ecg_lead["rpeaks"][1] - 20]) + s_index
             t_value[counter] = search_area_blr[t_index+5]
         except ValueError:

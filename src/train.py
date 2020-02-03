@@ -49,7 +49,6 @@ def train_classifiers(X, y, comment, i):
                          'C': [1, 10, 100, 1000, 10000]},
                         {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
 
-
     scores = ['precision', 'recall']
 
     for score in scores:
@@ -83,6 +82,7 @@ def train_classifiers(X, y, comment, i):
         print(classification_report(y_true, y_pred))
         print()
 
+    """""
     plt.ioff()
     plt.figure(i)
     for name, clf in zip(names, classifiers):
@@ -113,5 +113,5 @@ def train_classifiers(X, y, comment, i):
     plt.ylabel('True Positive Rate')
     plt.title(comment)
     plt.ioff()
-
+    """""
 

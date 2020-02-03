@@ -1,0 +1,9 @@
+astropy==4.0
+wfdb==2.2.1
+matplotlib==3.2.0rc1
+pandas==1.0.0
+scipy==1.4.1
+numpy==1.18.1
+biosppy==0.6.1
+scikit_learn==0.22.1
+xgboost==1.0.0rc1

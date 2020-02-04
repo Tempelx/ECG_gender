@@ -16,7 +16,18 @@ import pandas as pd
 
 
 class ParameterEstimator:
+    """""
+    Estimate best Parameters for Data 
 
+    Parameters:
+    ----------
+    models          dict            sklearn models 
+    params          dict            Hyperparameter
+
+    Returns:
+    ---------
+    df              pd.DataFrame    Trained Hyperparameter 
+    """""
     def __init__(self, models, params):
         self.models = models
         self.params = params
@@ -26,7 +37,7 @@ class ParameterEstimator:
     def fit(self, X, y, **grid_kwargs):
         # GridSearch over all Classifiers
         for key in self.keys:
-            print('Running GridSearchCV for %s.' % key)
+            print('Running GridSearch for %s.' % key)
             model = self.models[key]
             params = self.params[key]
             grid_search = GridSearchCV(model, params, **grid_kwargs)
@@ -68,7 +79,8 @@ class ParameterEstimator:
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
 
-    def score_summary(self, sort_by='mean_test_score'):
+    def score(self, sort_by='mean_test_score'):
+        # build df and sort
         frames = []
         for name, grid_search in self.grid_searches.items():
             frame = pd.DataFrame(grid_search.cv_results_)
@@ -89,7 +101,19 @@ class ParameterEstimator:
 
 
 def train_classifiers(X, y, comment):
+    """""
+    Main function for training
 
+    Parameters:
+    ----------
+    X               np.array        Features 
+    y               np.array        Class labels
+    comment         String          Comment for ROC Plot
+
+    Returns:
+    ---------
+    df              pd.DataFrame    Trained Hyperparameter scoring
+    """""
     from sklearn.svm import SVC
     from xgboost import XGBClassifier
     from sklearn.linear_model import LogisticRegression
@@ -142,8 +166,8 @@ def train_classifiers(X, y, comment):
 
     trainer.fit(X_train, y_train, scoring='f1', n_jobs=2)
 
-    trainer.fit_test(X_test, y_test, X_train, y_train, trainer.score_summary(), comment)
+    trainer.fit_test(X_test, y_test, X_train, y_train, trainer.score(), comment)
 
-    return trainer.score_summary()
+    return trainer.score()
 
 

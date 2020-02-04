@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 def plot_signals(ecgblr=None,  convolved_data_7_5=None,
                  signal_data=None, idx_df=None):
+    # simple plot function while development
 
     # plot signals
     plt.figure()

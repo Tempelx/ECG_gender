@@ -17,7 +17,17 @@ from src import train as trainer, feature_extraction as fe
 
 
 def train_features(feature_path):
+    """""
+    Preprocess and train features 
 
+    Parameters:
+    ----------
+    feature_path:    String     path to .csv Feature file 
+
+    Returns:
+    ---------
+    None
+    """""
     print('Start Training...')
     features = pd.read_csv(feature_path, index_col=0)
 
@@ -87,22 +97,14 @@ def train_features(feature_path):
     print('Finished high age')
 
 
-
-    import matplotlib.pyplot as plt
-    plt.show()
-    input()
-    # test
-
-
 if __name__ == '__main__':
 
     # path to chinese database files on your local machine
-    # path_to_chin = ''
+    # path_to_chin = '...'
+    # uncomment if you want to calculate the features again
     # features = fe.feature_calc(path_to_chin)
 
-    # path_to_nsr = '/Users/felixtempel11/Documents/database/nsrdb/'
-    # features = fe.feature_calc_nsr(path_to_nsr)
-
+    # Train features
     feature_path = './data/features.csv'
     train_features(feature_path)
 

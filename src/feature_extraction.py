@@ -12,40 +12,9 @@ import numpy as np
 import pandas as pd
 import glob
 import scipy
-import wfdb
 from biosppy.signals import ecg
 from astropy.convolution import convolve, Box1DKernel
 from src import preprocessing as pp
-from wfdb import processing
-
-
-def feature_calc_nsr(path):
-
-    import matplotlib.pyplot as plt
-    ecg_files_nsr = './data/RECORDS.csv'
-    ref_data = pd.read_csv(ecg_files_nsr)
-
-    for i in ref_data:
-
-        # build path
-        dummypath = path + i
-
-        sig_1, fields = wfdb.rdsamp(dummypath, channels=[0])
-        qrs_inds_1 = processing.xqrs_detect(sig=sig_1[0:1500, 0], fs=fields['fs'])
-
-        sig_2, fields = wfdb.rdsamp(dummypath, channels=[1])
-        qrs_inds_2 = processing.xqrs_detect(sig=sig_2[0:1500, 0], fs=fields['fs'])
-
-        plt.figure()
-        plt.subplot(211)
-        plt.plot(sig_1[0:1500])
-        plt.subplot(212)
-        plt.plot(sig_2[0:1500])
-
-
-
-
-    return 0
 
 
 def feature_calc(path):
@@ -54,7 +23,7 @@ def feature_calc(path):
 
     Parameters:
     ----------
-    path      String           path to chinese database
+    path      String           path to chinese database on local machine
 
     Returns:
     ---------
@@ -160,6 +129,7 @@ def feature_calc(path):
 
     # Feature DataFrame
     feat = pd.DataFrame(feature_data, columns=df_col)
+    # save this stuff
     feat.to_csv('./data/features.csv')
 
     return feat

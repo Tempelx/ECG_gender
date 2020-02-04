@@ -66,28 +66,27 @@ def train_features(feature_path):
     X_minmax = features_scaled_minmax[features_scaled_minmax.columns[3:9]].values
     y = features_scaled_minmax.iloc[:, 1].values
 
-    i = 0
     print('Train full dataset')
-    trainer.train_classifiers(X_minmax, y, 'Full Dataset', i)
+    result_full = trainer.train_classifiers(X_minmax, y, 'Full Dataset')
     print('Finished full dataset')
 
     feat_low_age = features_scaled_minmax.loc[features_scaled_minmax['Age'] <= 30]
     feat_low_scaled = feat_low_age[feat_low_age.columns[3:9]].values
     y = feat_low_age.iloc[:, 1].values
 
-    i = 1
     print('Train low age ')
-    trainer.train_classifiers(feat_low_scaled, y, ' Age <= 30 ', i)
+    result_low = trainer.train_classifiers(feat_low_scaled, y, ' Age <= 30 ')
     print('Finished low age')
 
     feat_high_age = features_scaled_minmax.loc[features_scaled_minmax['Age'] >= 30]
     feat__high_scaled = feat_high_age[feat_high_age.columns[3:9]].values
     y = feat_high_age.iloc[:, 1].values
 
-    i = 2
     print('Train high age')
-    trainer.train_classifiers(feat__high_scaled, y, 'Age >= 30', i)
+    result_high = trainer.train_classifiers(feat__high_scaled, y, 'Age >= 30')
     print('Finished high age')
+
+
 
     import matplotlib.pyplot as plt
     plt.show()
@@ -101,8 +100,8 @@ if __name__ == '__main__':
     # path_to_chin = ''
     # features = fe.feature_calc(path_to_chin)
 
-    #path_to_nsr = '/Users/felixtempel11/Documents/database/nsrdb/'
-    #features = fe.feature_calc_nsr(path_to_nsr)
+    # path_to_nsr = '/Users/felixtempel11/Documents/database/nsrdb/'
+    # features = fe.feature_calc_nsr(path_to_nsr)
 
     feature_path = './data/features.csv'
     train_features(feature_path)

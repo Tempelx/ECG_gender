@@ -1,6 +1,6 @@
-# ECG Sex estimation
+# ECG Gender Estimation
 
-Classification project for estimating the sex in normal 12 lead ECG signals.
+Classification project for estimating the gender in normal 12-lead ECG signals.
 
 ### Running
 
@@ -15,7 +15,3 @@ path_to_chin = 'your_path_goes_here'
 features = fe.feature_calc(path_to_chin)
 ```
 Otherwise just run the training function.
-
-## Author
-
-Felix Tempel
